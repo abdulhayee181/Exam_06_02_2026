@@ -1,0 +1,298 @@
+<?xml version="1.0"?>
+
+<robot name="marker_follower_robot" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+    <xacro:property name="pi_const" value="3.14159265" />
+
+    <!-- Size of the chassis -->
+    <xacro:property name="l" value="0.4" />
+    <xacro:property name="b" value="0.3" />
+    <xacro:property name="h" value="0.15" />
+
+    <!-- Size of the wheels -->
+    <xacro:property name="r" value="0.1" />
+    <xacro:property name="d" value="0.05" />
+
+    <!-- Size of caster wheel -->
+    <xacro:property name="caster_radius" value="0.05" />
+
+    <!-- Mass of the parts -->
+    <xacro:property name="mass_chassis" value="15" />
+    <xacro:property name="mass_wheel" value="5" />
+    <xacro:property name="mass_caster" value="5" />
+
+    <!-- inertial Chassis -->
+    <xacro:property name="Ix_body" value="${(1/12) * mass_chassis * (b*b + h*h)}" />
+    <xacro:property name="Iy_body" value="${(1/12) * mass_chassis * (l*l + h*h)}" />
+    <xacro:property name="Iz_body" value="${(1/12) * mass_chassis * (l*l + b*b)}" />
+
+    <!-- Inertia Wheel -->
+    <xacro:property name="Iy_wheel" value="${ 0.5*mass_wheel*r*r }" />
+    <xacro:property name="I_wheel" value="${ mass_wheel*((d*d/12) + (r*r/4))}" />
+
+    <!-- Inertial caster wheel -->
+    <xacro:property name="I_caster" value="${ (2.0/5.0) * mass_caster * r * r }" />
+
+    <xacro:include filename="$(find aruco_marker_robot)/urdf/materials.xacro" />
+
+    <xacro:include filename="$(find aruco_marker_robot)/urdf/marker_follower_robot.gazebo" />
+
+    <!-- Base Footprint -->
+    <link name="base_footprint" />
+
+    <!-- Base joint and link -->
+    <joint name="footprint_base_joint" type="fixed" >
+        <parent link="base_footprint" />
+        <child link="base_link" />
+        <!-- made change here, move base link little bit above -->
+        <origin xyz="0 0 0.15" rpy="0 0 0" />  
+    </joint>
+
+    <link name="base_link" >
+
+        <pose>0 0 0.1 0 0 0</pose>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+
+            <geometry>
+                <box size="${l} ${b} ${h}" />
+            </geometry>
+
+            <material name="white" />
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+
+            <geometry>
+                <box size="${l} ${b} ${h}" />
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="${mass_chassis}" />
+            <inertia ixx="${Ix_body}" ixy="0.0" ixz="0.0" iyy="${Iy_body}" iyz="0.0" izz="${Iz_body}"/>
+        </inertial>
+    </link>
+
+    <!-- Right Wheel joint and link -->
+    <joint name="base_right_wheel_joint" type="continuous" >
+        <parent link="base_link" />
+        <child link="right_wheel" />
+        <origin xyz="0.15 -0.175 -0.05" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <link name="right_wheel">
+        <visual>
+            <origin xyz="0 0 0" rpy="${pi_const/2} 0 0" />
+            
+            <geometry>
+                <cylinder radius="${r}" length="${d}" />
+            </geometry>
+
+            <material name="black" />
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="${pi_const/2} 0 0" />
+            
+            <geometry>
+                <cylinder radius="${r}" length="${d}" />
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="${pi_const/2} 0 0" />
+            <mass value="${mass_wheel}" />
+            <inertia ixx="${I_wheel}" ixy="0.0" ixz="0.0" iyy="${Iy_wheel}" iyz="0.0" izz="${I_wheel}" />
+        </inertial>
+    </link>
+
+    <!-- Left wheel joint and link -->
+    <joint name="base_left_wheel_joint" type="continuous" >
+        <parent link="base_link" />
+        <child link="left_wheel" />
+        <origin xyz="0.15 0.175 -0.05" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <link name="left_wheel" >
+        <visual>
+            <origin xyz="0 0 0" rpy="${pi_const/2} 0 0" />
+
+            <geometry>
+                <cylinder radius="${r}" length="${d}" />
+            </geometry>
+
+            <material name="black" />
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="${pi_const/2} 0 0" />
+            
+            <geometry>
+                <cylinder radius="${r}" length="${d}" />
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="${pi_const/2} 0 0" />
+            <mass value="${mass_wheel}" />
+            <inertia ixx="${I_wheel}" ixy="0.0" ixz="0.0" iyy="${Iy_wheel}" iyz="0.0" izz="${I_wheel}" />
+        </inertial>
+    </link>
+
+    <!-- caster wheel joint and link -->
+    <joint name="base_caster_wheel_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="caster_wheel"/>
+        <origin xyz="-0.15 0 -0.1" rpy="0 0 0"/>
+    </joint>
+
+    <link name="caster_wheel">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <sphere radius="${caster_radius}"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <sphere radius="${caster_radius}"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>  
+            <mass value="${mass_caster}"/>
+            <inertia ixx="${I_caster}" ixy="0" ixz="0" iyy="${I_caster}" iyz="0" izz="${I_caster}" />
+        </inertial>
+    </link>
+
+    <!-- Lidar support link -->
+    <joint name="lidar_support_joint" type="fixed" >
+        <parent link="base_link" />
+        <child link="support_link" />
+        <origin xyz="0 0 0.1" rpy="0 0 0" />
+    </joint>
+
+    <link name="support_link" >
+    
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <box size="0.2 0.2 0.05" />
+            </geometry>
+            <material name="white" />
+        </visual> 
+
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <box size="0.2 0.2 0.05" />
+            </geometry>
+        </collision> 
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="0.1"/>
+            <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+        </inertial>
+    </link>
+
+    <!-- Lidar scan joint and link -->
+    <joint name="scan_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="scan_link"/>
+        <origin xyz="0 0 0.135" rpy="0 0 0"/>
+        <axis xyz="0 1 0" rpy="0 0 0"/>
+    </joint>
+
+    <link name="scan_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="0.1" length="0.02"/>
+            </geometry>
+            <material name="blue"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="0.1" length="0.025"/>
+            </geometry>
+        </collision>
+        
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="0.1"/>
+            <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+        </inertial>
+    </link>
+
+    <!-- Camera joint and link -->
+    <joint name="camera_joint" type="fixed" >
+        <parent link="base_link" />
+        <child link="camera_link" />
+        <origin xyz="0.18 0 0.09" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <link name="camera_link" >
+        <pose>0 0 0 0 0 0</pose>
+        
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+
+            <geometry>
+                <box size="0.03 0.03 0.03" />
+            </geometry>
+            
+            <material name="blue" />
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+
+            <geometry>
+                <box size="0.03 0.03 0.03" />
+            </geometry>
+        </collision>
+
+        <inertial>
+            <mass value="0.1"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia
+                ixx="1e-6" ixy="0" ixz="0"
+                iyy="1e-6" iyz="0"
+                izz="1e-6" />
+        </inertial>
+    </link>
+
+    <joint type="fixed" name="camera_optical_joint">
+        <origin xyz="0 0 0" rpy="-1.5707 0 -1.5707"/>
+        <child link="camera_link_optical"/>
+        <parent link="camera_link"/>
+    </joint>
+
+    <link name="camera_link_optical" >
+    </link>
+
+    <!-- IMU -->
+    <joint name="imu_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="base_link"/>
+        <child link="imu_link" />
+    </joint>
+
+    <link name="imu_link">
+    </link>
+
+</robot>
